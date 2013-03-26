@@ -11,14 +11,18 @@ var Lang = A.Lang,
 	HOST = 'host',
 	NAME = 'scroll',
 
-	UP = 'up',
+	DELAY = 'delay',
 	DOWN = 'down',
-	RIGHT = 'right',
+	EDGE_PROXIMITY = 'edgeProximity',
+	LAST_STATE = 'lastState',
 	LEFT = 'left',
+	MAX_COORDINATE = 'maxCoordinate',
+	RIGHT = 'right',
+	UP = 'up',
 
 	APPROACHING = '-approaching',
+	AVAILABLE = '-available',
 	EDGE = '-edge',
-	SNAP = '-snap',
 	START = '-start',
 
 	SCROLL = NAME;
@@ -77,8 +81,8 @@ var Scroll = A.Component.create(
 			 * @type Number
 			 */
 			delay: {
-				value: null,
-				validator: isNumber
+				validator: isNumber,
+				value: null
 			},
 
 			/**
@@ -88,11 +92,10 @@ var Scroll = A.Component.create(
 			 * @type Object
 			 */
 			lastState: {
-				value:
-					{
-						scrollLeft: 0,
-						scrollTop: 0
-					}
+				value: {
+					scrollLeft: 0,
+					scrollTop: 0
+				}
 			},
 
 			/**
@@ -109,10 +112,9 @@ var Scroll = A.Component.create(
 			 * The distance between the edge and the beginning of an area whose
 			 * scroll instance will fire an "-edge-approaching" event.
 			 *
-			 * @attribute tolerance
+			 * @attribute edgeProximity
 			 */
-			tolerance: {
-				value: null,
+			edgeProximity: {
 				setter: function(val) {
 					var instance = this;
 
@@ -122,16 +124,12 @@ var Scroll = A.Component.create(
 						value = val;
 					}
 					else if (isString(val)) {
-						if (/px$/.test(val)) {
-							value = parseInt(val.substring(0, val.length - 2), 10);
-						}
-						else if (/^\d+$/.test(val)) {
-							value = parseInt(val, 10);
-						}
+						value = (Lang.toInt(val) / 100);
 					}
 
 					return value;
-				}
+				},
+				value: null
 			}
 		},
 
@@ -147,8 +145,6 @@ var Scroll = A.Component.create(
 			initializer: function(config) {
 				var instance = this;
 
-				instance.set('tolerance', config.tolerance);
-
 				var host = A.one(config.host);
 
 				instance._host = host;
@@ -161,48 +157,55 @@ var Scroll = A.Component.create(
 			_onScroll: function(event) {
 				var instance = this;
 
-				var lastState = instance.get('lastState');
-
-				var maxCoordinate = instance.get('maxCoordinate');
+				var edgeProximity = instance.get(EDGE_PROXIMITY);
+				var lastState = instance.get(LAST_STATE);
+				var maxCoordinate = instance.get(MAX_COORDINATE);
 
 				var node = instance._host._node;
 
-				var scrollLeft = (node.scrollX || node.scrollLeft);
-				var scrollTop = (node.scrollY || node.scrollTop);
+				var scrollLeft = node.scrollLeft;
+				var scrollTop = node.scrollTop;
+
+				var maxCoordinateX = maxCoordinate.x;
+				var maxCoordinateY = maxCoordinate.y;
+
+				var isPercentage = (edgeProximity % 1) != 0;
+
+				var edgeProximityX = isPercentage ? (maxCoordinateX * edgeProximity) : edgeProximity;
+				var edgeProximityY = isPercentage ? (maxCoordinateY * edgeProximity) : edgeProximity;
+
 				var scrolledDown = (scrollTop > lastState.scrollTop);
 				var scrolledLeft = (scrollLeft < lastState.scrollLeft);
 				var scrolledRight = (scrollLeft > lastState.scrollLeft);
 				var scrolledUp = (scrollTop < lastState.scrollTop);
-				var scrollSnapX = (scrollLeft - maxCoordinate.x);
-				var scrollSnapY = (scrollTop - maxCoordinate.y);
+
+				var availableScrollX = (scrollLeft - maxCoordinateX);
+				var availableScrollY = (scrollTop - maxCoordinateY);
 
 				var state = {
+					availableScrollX: availableScrollX,
+					availableScrollY: availableScrollY,
+					scrollLeft: scrollLeft,
+					scrollTop: scrollTop,
 					scrolledDown: scrolledDown,
 					scrolledLeft: scrolledLeft,
 					scrolledRight: scrolledRight,
-					scrolledUp: scrolledUp,
-					scrollSnapX: scrollSnapX,
-					scrollSnapY: scrollSnapY,
-					scrollLeft: scrollLeft,
-					scrollTop: scrollTop
+					scrolledUp: scrolledUp
 				};
 
-				var tolerance = instance.get('tolerance');
-
 				// Up
-
 				if (scrolledUp) {
 					instance.fire(UP, state);
 
-					if ((scrollTop - tolerance) <= 0) {
+					if ((scrollTop - edgeProximityY) <= 0) {
 						instance.fire(UP + EDGE, state);
 					}
 
 					if (scrollTop < 0) {
-						instance.fire(UP + SNAP, state);
+						instance.fire(UP + AVAILABLE, state);
 
-						if (lastState.scrollSnapY >= 0) {
-							instance.fire(UP + SNAP + START, state);
+						if (lastState.availableScrollY >= 0) {
+							instance.fire(UP + AVAILABLE + START, state);
 						}
 					}
 
@@ -212,19 +215,18 @@ var Scroll = A.Component.create(
 				}
 
 				// Down
-
 				if (scrolledDown) {
 					instance.fire(DOWN, state);
 
-					if ((scrollSnapY + tolerance) >= 0) {
+					if ((availableScrollY + edgeProximityY) >= 0) {
 						instance.fire(DOWN + EDGE, state);
 					}
 
-					if (scrollSnapY > 0) {
-						instance.fire(DOWN + SNAP, state);
+					if (availableScrollY > 0) {
+						instance.fire(DOWN + AVAILABLE, state);
 
-						if (lastState.scrollSnapY < 1) {
-							instance.fire(DOWN + SNAP + START, state);
+						if (lastState.availableScrollY < 1) {
+							instance.fire(DOWN + AVAILABLE + START, state);
 						}
 					}
 
@@ -234,19 +236,18 @@ var Scroll = A.Component.create(
 				}
 
 				// Left
-
 				if (scrolledLeft) {
 					instance.fire(LEFT, state);
 
-					if ((scrollLeft - tolerance) <= 0) {
+					if ((scrollLeft - edgeProximityX) <= 0) {
 						instance.fire(LEFT + EDGE, state);
 					}
 
-					if (scrollSnapX > 0) {
-						instance.fire(LEFT + SNAP, state);
+					if (availableScrollX > 0) {
+						instance.fire(LEFT + AVAILABLE, state);
 
-						if (lastState.scrollSnapX < 1) {
-							instance.fire(LEFT + SNAP + START, state);
+						if (lastState.availableScrollX < 1) {
+							instance.fire(LEFT + AVAILABLE + START, state);
 						}
 					}
 
@@ -256,19 +257,18 @@ var Scroll = A.Component.create(
 				}
 
 				// Right
-
 				if (scrolledRight) {
 					instance.fire(RIGHT, state);
 
-					if ((scrollSnapX + tolerance) >= 0) {
+					if ((availableScrollX + edgeProximityX) >= 0) {
 						instance.fire(RIGHT + EDGE, state);
 					}
 
-					if (scrollSnapX > 0) {
-						instance.fire(RIGHT + SNAP, state);
+					if (availableScrollX > 0) {
+						instance.fire(RIGHT + AVAILABLE, state);
 
-						if (lastState.scrollSnapX < 1) {
-							instance.fire(RIGHT + SNAP + START, state);
+						if (lastState.availableScrollX < 1) {
+							instance.fire(RIGHT + AVAILABLE + START, state);
 						}
 					}
 
@@ -278,37 +278,36 @@ var Scroll = A.Component.create(
 				}
 
 				// Reset
-
-				if ((scrollTop < 0) || (scrollSnapX > 0) || (scrollSnapY > 0) || (scrollLeft < 0)) {
+				if ((scrollTop < 0) || (availableScrollX > 0) || (availableScrollY > 0) || (scrollLeft < 0)) {
 					instance._reset();
 				}
 
-				instance.set('lastState', state);
+				instance.set(LAST_STATE, state);
 
 				clearTimeout(instance._delay);
 
-				instance._delay = setTimeout(instance._reset.bind(instance), instance.get('delay'));
+				instance._delay = setTimeout(instance._reset.bind(instance), instance.get(DELAY));
 			},
 
 			_reset: function() {
 				var instance = this;
 
-				var lastState = instance.get('lastState');
+				var lastState = instance.get(LAST_STATE);
 
-				lastState.scrollSnapX = 0;
-				lastState.scrollSnapY = 0;
+				lastState.availableScrollX = 0;
+				lastState.availableScrollY = 0;
 
-				instance.set('lastState', lastState);
+				instance.set(LAST_STATE, lastState);
 
 				var host = instance._host;
 
 				var node = host._node;
 
 				instance.set(
-					'maxCoordinate',
+					MAX_COORDINATE,
 					{
-						x: (node.scrollMaxX || node.scrollWidth) - host.innerWidth(),
-						y: (node.scrollMaxY || node.scrollHeight) - host.innerHeight()
+						x: (node.scrollWidth - host.innerWidth()),
+						y: (node.scrollHeight - host.innerHeight())
 					}
 				);
 			}
