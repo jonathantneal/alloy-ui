@@ -143,7 +143,7 @@
 <script type="text/javascript" charset="utf-8">
 AUI().ready('aui-scroll', function(A) {
 
-	var initScroll = function(node, direction) {
+	var initScroll = function(node, direction, edgeProximity) {
 		var demo = A.one(node);
 
 		var loading = false;
@@ -151,7 +151,7 @@ AUI().ready('aui-scroll', function(A) {
 		demo.plug(
 			A.Scroll,
 			{
-				tolerance: 50
+				edgeProximity: edgeProximity
 			}
 		);
 
@@ -214,10 +214,10 @@ AUI().ready('aui-scroll', function(A) {
 		);
 	}
 
-	initScroll('#demo1', 'down-edge');
-	initScroll('#demo2', 'up-edge');
-	initScroll('#demo3', 'right-edge');
-	initScroll('#demo4', 'left-edge');
+	initScroll('#demo1', 'bottom-edge', 0.2);
+	initScroll('#demo2', 'top-edge', 20);
+	initScroll('#demo3', 'right-edge', 0);
+	initScroll('#demo4', 'left-edge', null);
 
 });
 </script>
