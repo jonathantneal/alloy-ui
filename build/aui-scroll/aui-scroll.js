@@ -12,6 +12,7 @@ var Lang = A.Lang,
 	HOST = 'host',
 	NAME = 'scroll',
 
+	BOTTOM ='bottom',
 	DELAY = 'delay',
 	DOWN = 'down',
 	EDGE_PROXIMITY = 'edgeProximity',
@@ -19,6 +20,7 @@ var Lang = A.Lang,
 	LEFT = 'left',
 	MAX_COORDINATE = 'maxCoordinate',
 	RIGHT = 'right',
+	TOP = 'top',
 	UP = 'up',
 
 	APPROACHING = '-approaching',
@@ -170,7 +172,7 @@ var Scroll = A.Component.create(
 				var maxCoordinateX = maxCoordinate.x;
 				var maxCoordinateY = maxCoordinate.y;
 
-				var isPercentage = (edgeProximity % 1) != 0;
+				var isPercentage = (edgeProximity % 1) !== 0;
 
 				var edgeProximityX = isPercentage ? (maxCoordinateX * edgeProximity) : edgeProximity;
 				var edgeProximityY = isPercentage ? (maxCoordinateY * edgeProximity) : edgeProximity;
@@ -199,7 +201,7 @@ var Scroll = A.Component.create(
 					instance.fire(UP, state);
 
 					if ((scrollTop - edgeProximityY) <= 0) {
-						instance.fire(UP + EDGE, state);
+						instance.fire(TOP + EDGE, state);
 					}
 
 					if (scrollTop < 0) {
@@ -220,7 +222,7 @@ var Scroll = A.Component.create(
 					instance.fire(DOWN, state);
 
 					if ((availableScrollY + edgeProximityY) >= 0) {
-						instance.fire(DOWN + EDGE, state);
+						instance.fire(BOTTOM + EDGE, state);
 					}
 
 					if (availableScrollY > 0) {
@@ -279,7 +281,7 @@ var Scroll = A.Component.create(
 				}
 
 				// Reset
-				if ((scrollTop < 0) || (availableScrollX > 0) || (availableScrollY > 0) || (scrollLeft < 0)) {
+				if ((availableScrollX > 0) || (availableScrollY > 0) || (scrollLeft < 0) || (scrollTop < 0) ) {
 					instance._reset();
 				}
 
