@@ -11,49 +11,54 @@
 			font-size: 12px;
 		}
 
-		p, li {
-			font-size: larger;
-		}
-
 		#wrapper {
 			padding: 10px;
 		}
 
-		#demo {
-			display: block;
-			width: 100%;
+		.data {
+			border: 1px solid #CCC;
+			padding: 5px;
 		}
 
-		.data {
-			background-color: #CCCCFF;
-			float: left;
-			font-family: Helvetica, sans-serif;
+		.horizontal {
+			height: 40px;
+			white-space: nowrap;
+			overflow-x: auto;
+			overflow-y: hidden;
+			width: 250px;
+		}
+
+		.vertical {
 			height: 150px;
-			margin: 20px;
-			overflow: auto;
-			overflow-x: hidden;
-			padding: 5px;
-			width: 200px;
+			overflow-y: auto;
+			width: 150px;
 		}
 
 		.data ul {
-			margin-bottom: 0;
-			margin-top: 0;
+			margin: 0;
+		}
+
+		.data li {
+			list-style: none;
+			vertical-align: middle;
+		}
+
+		.horizontal li {
+			display: inline;
+			padding: 0 5px;
 		}
 
 		.loading {
 			display: block;
-			background-image: url(../../resources/docs/themes/default/assets/img/spinner.gif);
-			background-position: center center;
-			background-repeat: no-repeat;
-			font-style: italic;
-			margin-left: 25px;
+			background: url(../../resources/docs/themes/default/assets/img/spinner.gif) no-repeat 50% 90%;
+			height: 24px;
 		}
 
-		.loading.loaded {
-			display: none;
+		.horizontal .loading {
+			background-position: 50% 50%;
+			display: inline-block;
+			width: 24px;
 		}
-
 	</style>
 </head>
 
@@ -62,91 +67,158 @@
 <div id="wrapper">
 	<h1>Alloy - Continuous Scroll Demo</h1>
 
-	<div id="demo">
-		<h2>Intial Data: 20 elements</h2>
+	<h2>Try continuous scrolling (initial data: 10 elements)</h2>
 
-		<h3>Try continuous scrolling</h3>
+	<h3>Scroll down</h3>
 
-		<div class="data">
-			<ul>
-				<li data-id="1">Data 1</li>
-				<li data-id="2">Data 2</li>
-				<li data-id="3">Data 3</li>
-				<li data-id="4">Data 4</li>
-				<li data-id="5">Data 5</li>
-				<li data-id="6">Data 6</li>
-				<li data-id="7">Data 7</li>
-				<li data-id="8">Data 8</li>
-				<li data-id="9">Data 9</li>
-				<li data-id="10">Data 10</li>
-				<li data-id="11">Data 11</li>
-				<li data-id="12">Data 12</li>
-				<li data-id="13">Data 13</li>
-				<li data-id="14">Data 14</li>
-				<li data-id="15">Data 15</li>
-				<li data-id="16">Data 16</li>
-				<li data-id="17">Data 17</li>
-				<li data-id="18">Data 18</li>
-				<li data-id="19">Data 19</li>
-				<li data-id="20">Data 20</li>
-			</ul>
-		</div>
+	<div id="demo1" class="data vertical">
+		<ul>
+			<li>Data 1</li>
+			<li>Data 2</li>
+			<li>Data 3</li>
+			<li>Data 4</li>
+			<li>Data 5</li>
+			<li>Data 6</li>
+			<li>Data 8</li>
+			<li>Data 9</li>
+			<li>Data 7</li>
+			<li>Data 10</li>
+		</ul>
+	</div>
 
-		<span class="loading loaded">Loading...</span>
+	<h3>Scroll up</h3>
+
+	<div id="demo2" class="data vertical">
+		<ul>
+			<li>Data 1</li>
+			<li>Data 2</li>
+			<li>Data 3</li>
+			<li>Data 4</li>
+			<li>Data 5</li>
+			<li>Data 6</li>
+			<li>Data 8</li>
+			<li>Data 9</li>
+			<li>Data 7</li>
+			<li>Data 10</li>
+		</ul>
+	</div>
+
+
+	<h3>Scroll right</h3>
+
+	<div id="demo3" class="data horizontal">
+		<ul>
+			<li>Data 1</li>
+			<li>Data 2</li>
+			<li>Data 3</li>
+			<li>Data 4</li>
+			<li>Data 5</li>
+			<li>Data 6</li>
+			<li>Data 8</li>
+			<li>Data 9</li>
+			<li>Data 7</li>
+			<li>Data 10</li>
+		</ul>
+	</div>
+
+
+	<h3>Scroll left</h3>
+
+	<div id="demo4" class="data horizontal">
+		<ul>
+			<li>Data 1</li>
+			<li>Data 2</li>
+			<li>Data 3</li>
+			<li>Data 4</li>
+			<li>Data 5</li>
+			<li>Data 6</li>
+			<li>Data 8</li>
+			<li>Data 9</li>
+			<li>Data 7</li>
+			<li>Data 10</li>
+		</ul>
 	</div>
 </div>
 
 <script type="text/javascript" charset="utf-8">
 AUI().ready('aui-scroll', function(A) {
-	var demo = A.one('#demo');
 
-	var data = demo.one('.data');
+	var initScroll = function(node, direction) {
+		var demo = A.one(node);
 
-	var loadingNode = demo.one('.loading');
+		var loading = false;
 
-	var loading = false;
-
-	data.plug(
-		A.Scroll,
-		{
-			tolerance: '50px'
-		}
-	);
-
-	data.scroll.on(
-		'down-edge',
-		function(event) {
-			if (!loading) {
-				var itemList = data.one('ul');
-
-				data.append(loadingNode);
-
-				loadingNode.removeClass('loaded');
-
-				setTimeout(
-					function() {
-						var lastChild = data.one('li:last-child');
-
-						var index = 1;
-
-						for (index; index < 6; index++) {
-							var id = parseInt(lastChild.attr('data-id')) + index;
-
-							itemList.append('<li data-id="' + id + '">Data ' + id + '</li>');
-						}
-
-						loadingNode.addClass('loaded');
-
-						loading = false;
-
-					},
-					500
-				);
-
-				loading = true;
+		demo.plug(
+			A.Scroll,
+			{
+				tolerance: 50
 			}
-		}
-	);
+		);
+
+		demo.scroll.on(
+			direction,
+			function(event) {
+				if (!loading) {
+					var loadingItem;
+
+					var itemList = demo.one('ul');
+					var itemLength = demo.all('li').size();
+					var loadingNode = A.Node.create('<li class="loading">Loading...</li>');
+
+					var setDirection = (direction.indexOf('down') > -1) || (direction.indexOf('right') > -1);
+
+					if (demo.hasClass('horizontal')) {
+						loadingNode.html('');
+					}
+
+					if (setDirection) {
+						itemList.append(loadingNode);
+					}
+					else {
+						itemList.prepend(loadingNode);
+					}
+
+					setTimeout(
+						function() {
+							if (setDirection) {
+								loadingItem = demo.one('li:last-child');
+							}
+							else {
+								loadingItem = demo.one('li:first-child');
+							}
+
+							loadingItem.remove();
+
+							for (var index = 1; index < 6; index++) {
+								var id = itemLength + index;
+
+								var newLi = A.Node.create('<li>Data ' + id + '</li>');
+
+								if (setDirection) {
+									itemList.append(newLi);
+								}
+								else {
+									itemList.prepend(newLi);
+								}
+							}
+
+							loading = false;
+
+						},
+						500
+					);
+
+					loading = true;
+				}
+			}
+		);
+	}
+
+	initScroll('#demo1', 'down-edge');
+	initScroll('#demo2', 'up-edge');
+	initScroll('#demo3', 'right-edge');
+	initScroll('#demo4', 'left-edge');
+
 });
 </script>
 
