@@ -165,8 +165,8 @@ var Scroll = A.Component.create(
 
 				var node = instance._host._node;
 
-				var scrollLeft = node.scrollLeft;
-				var scrollTop = node.scrollTop;
+				var scrollLeft = node.scrollLeft || node.scrollX;
+				var scrollTop = node.scrollTop || node.scrollY;
 
 				var maxCoordinateX = maxCoordinate.x;
 				var maxCoordinateY = maxCoordinate.y;
@@ -305,11 +305,14 @@ var Scroll = A.Component.create(
 
 				var node = host._node;
 
+				var scrollX = node.scrollWidth || node.scrollMaxX;
+				var scrollY = node.scrollHeight || node.scrollMaxY;
+
 				instance.set(
 					MAX_COORDINATE,
 					{
-						x: (node.scrollWidth - host.innerWidth()),
-						y: (node.scrollHeight - host.innerHeight())
+						x: (scrollX - host.innerWidth()),
+						y: (scrollY - host.innerHeight())
 					}
 				);
 			}
